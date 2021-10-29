@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: container-platform-pipeline-api-deployment
+  labels:
+      app: container-platform-pipeline-api
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: container-platform-pipeline-api
+  template:
+    metadata:
+      labels:
+        app: container-platform-pipeline-api
+    spec:
+      containers:
+        - name: container-platform-pipeline-api
+          image: 10.0.0.184/container-platform/container-platform-pipeline-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8082
+          env:
+            - name: CONTAINER_PLATFORM_PIPELINE_COMMON_API_URI
+              value: http://container-platform-pipeline-common-api.default.svc.cluster.local:8081
+            - name: CONTAINER_PLATFORM_PIPELINE_INSPECTION_API_URI
+              value: http://container-platform-pipeline-inspection-api.default.svc.cluster.local:8085
+            - name: CONTAINER_PLATFORM_PIPELINE_UI_URI
+              value: http://13.125.220.161:30084/dashboard/{SERVICE_INSTANCE_ID}/pipelines/{PIPELINE_ID}/jobs/{JOB_ID}/{JOB_TYPE}
+            - name: HARBOR_API_URI
+              value: http://10.0.0.184/api/v2.0
+            - name: KEYCLOAK_URI
+              value: http://52.78.202.183:32627/auth
+      imagePullSecrets:
+        - name: harbor-registry-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: container-platform-pipeline-api
+  labels:
+    app: container-platform-pipeline-api
+  namespace: default
+spec:
+  ports:
+    - port: 8082
+      protocol: TCP
+  selector:
+    app: container-platform-pipeline-api
+  type: ClusterIP
+

@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: container-platform-pipeline-ui-deployment
+  labels:
+    app: container-platform-pipeline-ui
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: container-platform-pipeline-ui
+  template:
+    metadata:
+      labels:
+        app: container-platform-pipeline-ui
+    spec:
+      containers:
+        - name: container-platform-pipeline-ui
+          image: 10.0.0.184/container-platform/container-platform-pipeline-ui:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8084
+          env:
+            - name: CONTAINER_PLATFORM_PIPELINE_COMMON_API_URI
+              value: http://container-platform-pipeline-common-api.default.svc.cluster.local:8081
+            - name: CONTAINER_PLATFORM_PIPELINE_API_URI
+              value: http://container-platform-pipeline-api.default.svc.cluster.local:8082
+            - name: CONTAINER_PLATFORM_PIPELINE_INSPECTION_API_URI
+              value: http://container-platform-pipeline-inspection-api.default.svc.cluster.local:8085
+            - name: KEYKCLOAK_URI
+              value: http://52.78.202.183:32627
+            - name: KEYCLOAK_CLIENT_ID
+              value: cp-client
+            - name: KEYCLOAK_SECRET_ID
+              value: 6404ebbc-4c96-47ef-bb99-11a5369f6988
+            - name: KEYCLOAK_ROLE_NAME
+              value: pipeline-admin-role
+            - name: CONFIG_SERVER_URI
+              value: localhost
+      imagePullSecrets:
+        - name: harbor-registry-secret
+      
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: container-platform-pipeline-ui
+  labels:
+    app: container-platform-pipeline-ui
+  namespace: default
+spec:
+  ports:
+    - nodePort: 30084
+      port: 8084
+      protocol: TCP
+      targetPort: 8084
+  selector:
+    app: container-platform-pipeline-ui
+  type: NodePort

@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: container-platform-pipeline-common-api-deployment
+  labels:
+    app: container-platform-pipeline-common-api
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: container-platform-pipeline-common-api
+  template:
+    metadata:
+      labels:
+        app: container-platform-pipeline-common-api
+    spec:
+      containers:
+        - name: container-platform-pipeline-common-api
+          image: 10.0.0.184/container-platform/container-platform-pipeline-common-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+          env:
+            - name: HAPROXY_IP
+              value: "3.38.36.125"
+            - name: MARIADB_PORT
+              value: "13306"
+            - name: MARIADB_USER_ID
+              value: "cp-admin"
+            - name: MARIADB_USER_PASSWORD
+              value: "Paasta!2021"
+            - name: CONTAINER_PLATFORM_PIPELINE_API_URI
+              value: http://container-platform-pipeline-api.default.svc.cluster.local
+      imagePullSecrets:
+        - name: harbor-registry-secret
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: container-platform-pipeline-common-api
+  labels:
+    app: container-platform-pipeline-common-api
+  namespace: default
+spec:
+  ports:
+    - port: 8081
+      protocol: TCP
+  selector:
+    app: container-platform-pipeline-common-api
+  type: ClusterIP
+

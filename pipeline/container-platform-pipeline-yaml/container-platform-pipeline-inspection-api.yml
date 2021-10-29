@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: container-platform-pipeline-inspection-api-deployment
+  labels:
+    app: container-platform-pipeline-inspection-api
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: container-platform-pipeline-inspection-api
+  template:
+    metadata:
+      labels:
+        app: container-platform-pipeline-inspection-api
+    spec:
+      containers:
+        - name: container-platform-pipeline-inspection-api
+          image: 10.0.0.184/container-platform/container-platform-pipeline-inspection-api:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8085
+          env:
+          - name: INSPECTION_SERVER_URI
+            value: http://demo-sonarqube-sonarqube.sonar-demo.svc.cluster.local:9000
+          - name: CONTAINER_PLATFORM_PIPELINE_COMMON_API_URI
+            value: http://container-platform-pipeline-common-api.default.svc.cluster.local:8081
+      imagePullSecrets:
+        - name: harbor-registry-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: container-platform-pipeline-inspection-api
+  labels:
+    app: container-platform-pipeline-inspection-api
+  namespace: default
+spec:
+  ports:
+    - port: 8085
+      protocol: TCP
+      targetPort: 8085
+  selector:
+    app: container-platform-pipeline-inspection-api
+  type: ClusterIP
+
